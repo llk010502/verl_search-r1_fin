@@ -26,6 +26,7 @@ import ray
 import ray.actor
 
 from verl.tools.utils.search_r1_like_utils import perform_single_search_batch
+from verl.tools.utils.document_indexer import DocumentIndexer
 
 from .base_tool import BaseTool
 from .schemas import OpenAIFunctionToolSchema
@@ -184,9 +185,14 @@ class SearchTool(BaseTool):
         """
         if instance_id is None:
             instance_id = str(uuid4())
+
+        document_text = kwargs.get("document") or kwargs.get("support")
+        indexer = DocumentIndexer(document_text) if document_text else None
+
         self._instance_dict[instance_id] = {
             "response": "",
             "reward": [],
+            "indexer": indexer,
         }
         return instance_id
 
@@ -203,13 +209,17 @@ class SearchTool(BaseTool):
         Returns:
             Tuple of (result_text, metadata)
         """
-        result_text, metadata = perform_single_search_batch(
-            retrieval_service_url=retrieval_service_url,
-            query_list=query_list,
-            topk=topk,
-            concurrent_semaphore=None,  # Ray handles concurrency control
-            timeout=timeout,
-        )
+        indexer = self._instance_dict.get(instance_id, {}).get("indexer")
+        if indexer is not None:
+            result_text, metadata = indexer.batch_search(query_list, topk=topk)
+        else:
+            result_text, metadata = perform_single_search_batch(
+                retrieval_service_url=retrieval_service_url,
+                query_list=query_list,
+                topk=topk,
+                concurrent_semaphore=None,  # Ray handles concurrency control
+                timeout=timeout,
+            )
         logger.debug(f"Search result for instance {instance_id}: {result_text}")
         return result_text, metadata
 
