@@ -22,11 +22,12 @@ python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.train_batch_size=512 \
     data.val_batch_size=256 \
-    data.max_prompt_length=4096 \
-    data.max_response_length=3000 \
-    data.filter_overlong_prompts=True \
-    data.truncation='error' \
-    data.return_raw_chat=True \
+      data.max_prompt_length=4096 \
+      data.max_response_length=3000 \
+      data.filter_overlong_prompts=True \
+      data.truncation='error' \
+      data.need_tools_kwargs=True \
+      data.return_raw_chat=True \
     actor_rollout_ref.model.path=Qwen/Qwen2.5-3B-Instruct \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.actor.optim.lr_warmup_steps_ratio=0.285 \
