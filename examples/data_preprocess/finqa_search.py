@@ -61,13 +61,21 @@ def main() -> None:
                 example["question"] += "?"
             question = make_prefix(example, template_type=args.template_type)
             solution = {"target": example["answer"]}
+            support = example.get("information", example.get("support", ""))
+            tools_kwargs = {"search": {"create_kwargs": {"document": support}}}
+            extra_info = {
+                "split": split,
+                "index": idx,
+                "need_tools_kwargs": True,
+                "tools_kwargs": tools_kwargs,
+            }
             data = {
                 "data_source": data_source,
                 "prompt": [{"role": "user", "content": question}],
                 "ability": "fact-reasoning",
                 "reward_model": {"style": "rule", "ground_truth": solution},
-                "support": example.get("information", example.get("support", "")),
-                "extra_info": {"split": split, "index": idx},
+                "support": support,
+                "extra_info": extra_info,
             }
             return data
 
